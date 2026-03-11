@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS workspace.ai_project.ingestion_log (
     file_name           STRING,
     file_size_kb        DOUBLE,
     error_message       STRING,
+    fetch_method        STRING,
     CONSTRAINT ingestion_log_pk PRIMARY KEY (log_id)
 )
 USING DELTA
