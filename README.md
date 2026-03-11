@@ -222,4 +222,4 @@ run_agent("How do I create a managed table in Databricks?")
 
 ## Author
 
-Sean | [GitHub](https://github.com/seaninc-training)
+Sean Incardona | [GitHub](https://github.com/seaninc-training)
