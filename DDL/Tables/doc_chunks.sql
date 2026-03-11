@@ -1,13 +1,13 @@
--- Table: workspace.ai_project.docs_chunks
+-- Table: workspace.ai_project.doc_chunks
 -- Description: Processed text chunks from technical documentation for vector search and RAG pipelines
 -- Created: 2026
 -- Author: Sean Incardona
 
-CREATE TABLE IF NOT EXISTS workspace.ai_project.docs_chunks (
+CREATE TABLE IF NOT EXISTS workspace.ai_project.doc_chunks (
     chunk_id        STRING NOT NULL,
     content         STRING,
     source          STRING,
-    source_type     STRING,
+    --source_type     STRING,
     type            STRING,
     page_number     INT,
     start_index     INT,
@@ -16,3 +16,4 @@ CREATE TABLE IF NOT EXISTS workspace.ai_project.docs_chunks (
 USING DELTA
 TBLPROPERTIES ('delta.enableChangeDataFeed' = 'true')
 COMMENT 'Processed text chunks from technical documentation for vector search and RAG pipelines';
+
