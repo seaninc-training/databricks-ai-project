@@ -12,11 +12,19 @@ CREATE TABLE IF NOT EXISTS workspace.ai_project.doc_sources (
     date_added          TIMESTAMP,
     last_fetched        TIMESTAMP,
     fetch_method        STRING,
+    source_type         STRING,
     CONSTRAINT doc_sources_pk PRIMARY KEY (doc_id)
 )
 USING DELTA
 COMMENT 'Directory of documentation URLs used as source material for the docs ingestion pipeline';
 
+
+-- ALTER TABLE workspace.ai_project.doc_sources
+-- ADD COLUMN ;
+
+-- UPDATE workspace.ai_project.doc_sources
+-- SET source_type = 'docs'
+-- WHERE source_type IS NULL;
 
 /** INITIAL LOAD **/
 -- INSERT INTO workspace.ai_project.doc_sources 
@@ -82,3 +90,14 @@ COMMENT 'Directory of documentation URLs used as source material for the docs in
     
 --     ('https://api.github.com/repos/apache/spark/contents/docs/sql-programming-guide.md', 
 --      'Spark SQL', 'Apache Spark SQL Programming Guide', true, current_timestamp(), null, 'api');
+
+
+
+INSERT INTO workspace.ai_project.doc_sources
+    (url, topic, title, active, date_added, last_fetched, fetch_method, source_type)
+VALUES
+    ('https://api.github.com/repos/seaninc-training/reference-material-source/contents/policy/naming_conventions.md',
+     'Policy', 'Naming Conventions', true, current_timestamp(), null, 'api', 'policy'),
+    
+    ('https://api.github.com/repos/seaninc-training/reference-material-source/contents/policy/table_creation_standards.md',
+     'Policy', 'Table Creation Standards', true, current_timestamp(), null, 'api', 'policy');
