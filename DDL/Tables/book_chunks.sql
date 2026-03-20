@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS workspace.ai_project.book_chunks (
     type            STRING,
     page_number     INT,
     start_index     INT,
+    created_at      TIMESTAMP,
     CONSTRAINT books_chunks_pk PRIMARY KEY (chunk_id)
 )
 USING DELTA
