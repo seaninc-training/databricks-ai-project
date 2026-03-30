@@ -1,7 +1,3 @@
-
-
-
-
 import json
 import logging
 import mlflow
@@ -16,37 +12,64 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 class DataEngCopilot(ResponsesAgent):
+    FOUNDATIONS = {
+        "catalog": "workspace",
+        "schema": "ai_project",
+        "base_url": "https://7474648118426063.ai-gateway.cloud.databricks.com/mlflow/v1",
+        "llm_model": "databricks-meta-llama-3-3-70b-instruct",
+        "endpoint_name": "search_endpoint",
+        "warehouse_id": "9eaff5e0e46121fb"
+    }
+
+    SOURCE_CONFIG = {
+        "books": {"index": "workspace.ai_project.book_vector_index"},
+        "docs":  {"index": "workspace.ai_project.doc_vector_index"},
+        "policy": {"index": "workspace.ai_project.policy_vector_index"}
+    }
+
+    def __init__(self):
+        self.foundations = self.FOUNDATIONS
+        self.source_config = self.SOURCE_CONFIG
 
     def predict(self, request: ResponsesAgentRequest) -> ResponsesAgentResponse:
+        from databricks.sdk.runtime import dbutils
 
         # Load foundations config
-        from pyspark.sql import SparkSession
-        spark = SparkSession.builder.getOrCreate()
-
-        foundations = {
-            row['config_key']: row['config_value']
-            for row in spark.sql("SELECT config_key, config_value FROM workspace.ai_project.foundations").collect()
-        }
+        foundations   = self.foundations
+        source_config = self.source_config
 
         catalog       = foundations['catalog']
         schema        = foundations['schema']
         base_url      = foundations['base_url']
         llm_model     = foundations['llm_model']
         endpoint_name = foundations['endpoint_name']
+        warehouse_id  = foundations['warehouse_id']
 
-        # Load source_config
-        source_config_rows = spark.sql("SELECT source_type, index_name FROM workspace.ai_project.source_config").collect()
-        source_config = {
-            row['source_type']: {"index": row['index_name']}
-            for row in source_config_rows
-        }
+        # Auth 
+        host = os.environ.get("DATABRICKS_HOST", "https://dbc-e135119c-f191.cloud.databricks.com")
+        token = os.environ.get("DATABRICKS_TOKEN")
 
-        # Auth — try SDK first, fall back to environment variable
-        from databricks.sdk.runtime import dbutils
-        
-        w = WorkspaceClient()
-        token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
-        vsc = VectorSearchClient()
+        logger.info(f"🔐 host from env: {host}")
+        logger.info(f"🔐 token from env is None: {token is None}")
+
+        if not token:
+            try:
+                from databricks.sdk.runtime import dbutils
+                token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+                w = WorkspaceClient()
+                vsc = VectorSearchClient()
+                logger.info("🔐 Auth path: dbutils notebook fallback")
+            except Exception as e:
+                logger.info(f"🔐 Auth path: placeholder (dbutils failed: {e})")
+                token = "placeholder"
+                w = None
+                vsc = None
+        else:
+            w = WorkspaceClient(host=host, token=token)
+            vsc = VectorSearchClient(workspace_url=host, personal_access_token=token)
+            logger.info("🔐 Auth path: serving environment")
+
+        # Explicitly pass these to the clients
         client = OpenAI(api_key=token, base_url=base_url)
 
         # Tool definitions
@@ -149,11 +172,14 @@ class DataEngCopilot(ResponsesAgent):
 
         def execute_sql(sql_code):
             try:
-                result = spark.sql(sql_code)
-                rows = result.collect()
+                result = w.statement_execution.execute_statement(
+                    warehouse_id=warehouse_id,
+                    statement=sql_code
+                )
+                rows = result.result.data_array
                 if rows:
                     output = "\n".join([str(row) for row in rows])
-                    return f"SQL executed successfully and committed to Databricks. Results:\n{output}"
+                    return f"SQL executed successfully. Results:\n{output}"
                 else:
                     return "SQL executed successfully and committed to Databricks. No further action required."
             except Exception as e:
