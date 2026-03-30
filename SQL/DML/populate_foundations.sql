@@ -6,5 +6,6 @@ VALUES
     ('volume',          'raw_data',                                                         'catalog',        'Unity Catalog volume name'),
     ('base_url',        'https://7474648118426063.ai-gateway.cloud.databricks.com/mlflow/v1', 'model',        'Databricks AI Gateway base URL'),
     ('embedding_model', 'databricks-bge-large-en',                                          'model',          'Embedding model endpoint name'),
-    ('llm_model',       'databricks-meta-llama-3-1-405b-instruct',                          'model',          'LLM model endpoint name'),
-    ('endpoint_name',   'search_endpoint',                                                  'vector_search',  'Vector Search endpoint name');
+    ('llm_model',       'databricks-meta-llama-3-3-70b-instruct',                          'model',          'LLM model endpoint name'),
+    ('endpoint_name',   'search_endpoint',                                                  'vector_search',  'Vector Search endpoint name'),
+    ('warehouse_id', '9eaff5e0e46121fb', 'data_warehouse', 'Serverless Starter Warehouse ID');
