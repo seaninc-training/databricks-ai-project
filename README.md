@@ -151,10 +151,16 @@ SQL/
 
 ### Model Serving Endpoint
 
-Deployment of the registered UC model to a Databricks Model Serving endpoint is currently **in progress**. The endpoint (`data-eng-copilot`) is configured with `scale_to_zero_enabled: True` and `workload_size: Small`.
+Deployment of the registered UC model to a Databricks Model Serving endpoint has been **decommissioned** pending further research.
 
-> **Note:** Free Edition imposes authentication restrictions on serving container → foundation model API calls. Investigation into supported auth mechanisms for this configuration is ongoing.
+During development, the following Free Edition limitations were identified:
 
+- The serving container authenticates via an auto-provisioned service principal (`auth_type=model-serving`), which does not satisfy the Databricks AI Gateway's authentication requirements
+- PAT scopes for AI Gateway calls are not supported on Free Edition
+- The `DATABRICKS_TOKEN` injected into the serving container is rejected by foundation model endpoints when called via the OpenAI-compatible API or raw HTTP requests
+- `databricks-meta-llama-3-1-405b-instruct`, the original LLM, was retired on February 15, 2026 for pay-per-token workloads
+
+The agent functions correctly in the interactive `Data_Eng_Copilot` notebook environment. Serving endpoint deployment will be revisited once a supported auth pattern for Free Edition is identified.
 ---
 
 ## Setup Instructions
@@ -286,7 +292,7 @@ Run `Agent/Data_Eng_Copilot_Driver` top to bottom:
 
 ## Roadmap
 
-- [ ] **Model Serving endpoint** — resolve Free Edition auth restrictions for serving container → foundation model API calls
+- [ ] **Model Serving endpoint** — research supported auth patterns for Free Edition serving container → foundation model API calls; redeploy when identified
 - [ ] **Orchestration** — GitHub Actions + Databricks Workflows for scheduled ingestion
 - [ ] **Usage tracking** — populate `usage` field in `ResponsesAgentResponse`
 - [ ] **Data dictionary** — add to `reference-material-source` repo
